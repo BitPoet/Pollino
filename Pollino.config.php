@@ -13,7 +13,7 @@ class PollinoConfig extends ModuleConfig{
                 'label' => 'Default form action',
                 'value' => './',
                 'description' => 'Default action url for the voting form.',
-                ),
+            ),
             array(
                 'name' => 'result_sorting',
                 'type' => 'select',
@@ -21,23 +21,142 @@ class PollinoConfig extends ModuleConfig{
                 'value' => 'sort',
                 'description' => 'Default sorting of the answers.',
                 'options' => array(
-                        'sort' => 'Sort as in tree',
-                        'vote_desc' => 'Sort by Votes DESC',
-                        'vote_asc' => 'Sort by Voted ASC',
-                    )
-                ),
+                    'sort' => 'Sort as in tree',
+                    'vote_desc' => 'Sort by Votes DESC',
+                    'vote_asc' => 'Sort by Voted ASC',
+                )
+            ),
             array(
-                'name' => 'result_outertpl',
-                'type' => 'text',
-                'label' => 'Result list wrapper',
-                'value' => '<ol class="pollino_list_results">{out}</ol>',
-                ),
+            	'name' => 'show_expiry',
+            	'type' => 'checkbox',
+            	'label' => 'Show poll end date if set',
+            	'checkboxLabel' => 'Show poll end date'
+            ),
             array(
-                'name' => 'answer_outertpl',
-                'type' => 'text',
-                'label' => 'Voting list wrapper',
-                'value' => '<ul class="pollino_list">{out}</ul>',
-                ),
+                'label' => 'HTML Templates',
+                'type' => 'fieldset',
+                'children' => array(
+		            array(
+		                'label' => 'Generic',
+		                'type' => 'fieldset',
+		                'description' => 'These templates apply both to the poll form and the result display',
+		                'collapsed' => true,
+		                'children' => array(
+				            array(
+				            	'name' => 'poll_tpl',
+				            	'type' => 'textarea',
+				            	'rows' => 6,
+				            	'label' => 'Wrapper for poll (form and result)',
+				            	'value' => '<div class="pollino_poll">' . "\n\t" .
+									'<div class="pollino_inner">' . "\n\t\t" .
+										'<h3>{title}</h3>' . "\n\t\t" .
+										'{poll}' . "\n\t" .
+									'</div>' . "\n" .
+								'</div>',
+				            ),
+				            array(
+				            	'name' => 'expiry_tpl',
+				            	'type' => 'text',
+				            	'label' => 'Wrapper for poll end date',
+				            	'value' => '<p class="pollino_close">{label}<br>{closedate}</p>'
+				            ),
+				            array(
+				                'name' => 'message_tpl',
+				                'type' => 'text',
+				                'label' => 'Wrapper for error messages',
+				                'value' => '<p class="pollino_error">{message}</p>',
+				            ),
+				        ),
+				    ),
+		            array(
+		                'label' => 'Poll Form',
+		                'type' => 'fieldset',
+		                'description' => 'Templates only used in the poll form',
+		                'collapsed' => true,
+		                'children' => array(
+				            array(
+				                'name' => 'form_tpl',
+				                'type' => 'textarea',
+				                'label' => 'Form template',
+				                'rows' => 8,
+				                'value' => '<form action="{form_action}" method="get" class="pollino_form">' . "\n\t" .
+									'<input type="hidden" name="pollino_poll" value="{id}">' . "\n\t" .
+									'{configField}' . "\n\t" .
+									'{message}' . "\n\t" .
+									'{list}' . "\n\t" .
+									'{button} {loader}' . "\n\t" .
+									'{closing}' . "\n" .
+								'</form>',
+				            ),
+				            array(
+				                'name' => 'answer_outertpl',
+				                'type' => 'text',
+				                'label' => 'Form choice list wrapper',
+				                'value' => '<ul class="pollino_list">{out}</ul>',
+				            ),
+				            array(
+				                'name' => 'form_rowtpl',
+				                'type' => 'textarea',
+				                'label' => 'Form row template',
+				                'rows' => 4,
+				                'value' => '<li class="pollino_item">' . "\n\t" .
+				                	'<label><input type="radio" name="pollino_answer" value="{id}"> {title}</label>' . "\n" .
+				                '</li>',
+				            ),
+				            array(
+				                'name' => 'form_submittpl',
+				                'type' => 'text',
+				                'label' => 'Form submit button template',
+				                'value' => '<input class="pollino_submit" type="submit" value="{value}">',
+				            ),
+				            array(
+				                'name' => 'form_loadertpl',
+				                'type' => 'text',
+				                'label' => 'Form loading indicator',
+				                'value' => '<span class="pollino_loader pollino_hidden"></span>',
+				            ),
+				        ),
+				    ),
+		            array(
+		                'label' => 'Result Display',
+		                'type' => 'fieldset',
+		                'description' => 'Templates only for displaying results',
+		                'collapsed' => true,
+		                'children' => array(
+				            array(
+				                'name' => 'result_tpl',
+				                'type' => 'textarea',
+				                'label' => 'Result template',
+				                'value' => '{message}' . "\n" . '{list}' . "\n" . '{closed}' . "\n" . '{total}',
+				            ),
+				            array(
+				                'name' => 'result_outertpl',
+				                'type' => 'text',
+				                'label' => 'Result list wrapper',
+				                'value' => '<ol class="pollino_list_results">{out}</ol>',
+				            ),
+				            array(
+				                'name' => 'result_rowtpl',
+				                'type' => 'textarea',
+				                'label' => 'Result row template',
+				                'rows' => 6,
+				                'value' => '<li class="pollino_item pollino_item{key}">' . "\n\t" .
+								    '<span class="pollino_percent_wrapper">' . "\n\t\t" .
+								        '<span class="pollino_percent_bar stretchRight" style="width:{vote_percent}%;">&nbsp;</span>' . "\n\t" .
+								    '</span>' . "\n\t" .
+								    '{title} ({vote_percent}%, {vote_count})' . "\n" .
+								'</li>',
+				            ),
+				            array(
+				            	'name' => 'total_tpl',
+				            	'type' => 'text',
+				            	'label' => 'Total vote count template',
+				            	'value' => '<p class="pollino_total">{label} {vote_total}</p>',
+				            ),
+				        ),
+				    ),
+		        ),
+	        ),
             array(
                 'name' => 'Prevent Multiple Votings',
                 'type' => 'fieldset',

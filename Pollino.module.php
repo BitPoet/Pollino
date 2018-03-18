@@ -83,6 +83,17 @@ class Pollino extends WireData implements Module {
         }
 
     }
+    
+    private function storeOptionsSession($poll, $options) {
+    	$this->session->set("pollino_options_{$poll->id}", $options);
+    }
+    
+    private function loadOptionsSession($poll) {
+    	$options = $this->session->get("pollino_options_{$poll->id}");
+    	if($options) {
+    		$this->setOptions($options);
+    	}
+    }
 
     public function ___renderPoll(Page $poll = null, $options = null, $view_only = false) {
 
@@ -91,8 +102,15 @@ class Pollino extends WireData implements Module {
         } else if(is_array($options) || is_string($options)) {
             $this->setOptions($options);
         }
-
-        // print_r($this->data);
+        
+        // Store current options for ajax submission in case any of the templates are overridden
+        if(is_array($options) && ! $this->config->ajax) {
+        	$this->storeOptionsSession($poll, $options);
+        }
+        
+        if($poll->pollino_poll_closedate && time() >= $poll->getUnformatted("pollino_poll_closedate")) {
+        	$view_only = true;
+        }
 
         if(!$poll || !$poll->id) $poll = $this->wire("page");
 
@@ -100,22 +118,29 @@ class Pollino extends WireData implements Module {
         $alreadyVoted = $this->hasVoted($poll);
 
         if($alreadyVoted || $result['success'] || $view_only){
-            $out = "";
             $message = $result['message'];
-            if($message) $out .= "<p class='pollino_error'>$message</p>";
-            $out .= $this->renderPollResult($poll);
-            return $out;
+            $msg = $message ? str_replace('{message}', $message, $this->message_tpl) : "";
+            $out = $this->renderPollResult($poll, $msg);
         } else {
-            $out = "";
             $message = $result['message'];
-            if($message) $out .= "<p class='pollino_error'>$message</p>";
-            $out .= $this->renderPollForm($poll);
-            return $out;
+            $msg = $message ? str_replace('{message}', $message, $this->message_tpl) : "";
+            $out = $this->renderPollForm($poll, $msg);
         }
 
+		// Wrap main wrapper around poll
+		$html = str_replace(
+			array('{poll}', '{title}'),
+			array($out, $poll->title),
+			$this->poll_tpl
+		);
+		
+		// Remove unreplaced artifacts
+		$html = preg_replace('/\{[a-zA-Z0-9_]+\}/', '', $html);
+		
+		return $html;
     }
 
-    public function ___renderPollForm(Page $poll) {
+    public function ___renderPollForm(Page $poll, $msg = "") {
 
         $out = "";
         $list = "";
@@ -128,33 +153,45 @@ class Pollino extends WireData implements Module {
         }
 
         $list = str_replace("{out}", $list, $this->answer_outertpl);
-        $button = "<input class='pollino_submit' type='submit' value='". $this->_("Vote") . "'>";
+        $button = str_replace('{value}', $this->_("Vote"), $this->form_submittpl);
 
         $configField = "";
         if($this->config_name) {
             $configField = "<input type='hidden' name='pollino_config' value='{$this->config_name}'>";
         }
 
-        $loader = "<span class='pollino_loader pollino_hidden'></span>";
+		$closing = "";
+		if($this->show_expiry && $poll->pollino_poll_closedate) {
+			$closing = str_replace(
+				array('{label}', '{closedate}'),
+				array(__("This poll closes"), $poll->pollino_poll_closedate),
+				$this->expiry_tpl
+			);
+		}
 
-        $out .= "<form action='{$this->form_action}' method='get' class='pollino_form'>
-                    <input type='hidden' name='pollino_poll' value='{$poll->id}'>
-                    {$configField}
-                    {$list}
-                    {$button} {$loader}
-                </form>";
+        $loader = $this->form_loadertpl;
+
+		$out = str_replace(
+			array('{form_action}', '{id}', '{configField}', '{list}', '{button}', '{loader}', '{closing}', '{message}'),
+			array($this->form_action, $poll->id, $configField, $list, $button, $loader, $closing, $msg),
+			$this->form_tpl
+		);
 
         return $out;
     }
 
     public function ___renderFormRow($item, $key) {
-        $row = "\n<li class='pollino_item'>
-                    <label><input type='radio' name='pollino_answer' value='{$item->id}'> $item->title</label>
-                </li>";
+
+    	$row = str_replace(
+    		array('{id}', '{title}'),
+    		array($item->id, $item->title),
+    		$this->form_rowtpl
+    	);
+
         return $row;
     }
 
-    public function ___renderPollResult(Page $poll) {
+    public function ___renderPollResult(Page $poll, $msg = "") {
 
         $answers = $poll->children("template=pollino_poll_answer");
         if(!$answers->count) return __("Poll not configured: Missing answers.");
@@ -173,21 +210,37 @@ class Pollino extends WireData implements Module {
 
         // $chart = "<div class='pollino_chart'><canvas id='pollino_chart_{$poll->id}' width='100px' height='100px'></canvas></div>";
         $list = str_replace("{out}", $list, $this->result_outertpl);
-        $total = "<p class='pollino_total'>" . $this->_("Total votings:") . " $poll->vote_total</p>";
-        $out = $list . $total;
+        $total = str_replace(
+        	array('{label}', '{vote_total}'),
+        	array($this->_("Total votings:"), $poll->vote_total),
+        	$this->total_tpl
+        );
+        
+		$closed = "";
+		if($this->show_expiry && $poll->pollino_poll_closedate) {
+			$closed = str_replace(
+				array('{label}', '{closedate}', '{message}'),
+				array(__("This poll closed"), $poll->pollino_poll_closedate),
+				$this->expiry_tpl
+			);
+		}
+		
+        $out = str_replace(
+        	array('{list}', '{closed}', '{total}', '{message}'),
+        	array($list, $closed, $total, $msg),
+        	$this->result_tpl
+        );
 
         return $out;
     }
 
 
     public function ___renderResultRow($item, $key) {
-        $row = "\n<li class='pollino_item pollino_item$key'>
-                <span class='pollino_percent_wrapper'>
-                    <span class='pollino_percent_bar stretchRight' style='width:{$item->vote_percent}%;'>&nbsp;</span>
-                </span>
-                {$item->title} ({$item->vote_percent}%, {$item->vote_count})
-            </li>";
-
+    	$row = str_replace(
+    		array('{key}', '{vote_percent}', '{title}', '{vote_count}'),
+    		array($key, $item->vote_percent, $item->title, $item->vote_count),
+    		$this->result_rowtpl
+    	);
         return $row;
     }
 
@@ -286,7 +339,6 @@ class Pollino extends WireData implements Module {
         $input = $this->wire("input");
         $pages = $this->wire("pages");
 
-        // if($input->get->pollino_poll == $page->id && $input->get->pollino_answer) {
         if($input->get->pollino_poll == $page->id && $input->get->pollino_answer) {
 
             $vote_id = (int) $input->get->pollino_poll;
@@ -354,6 +406,9 @@ class Pollino extends WireData implements Module {
             $answer_id = (int) $input->get->pollino_answer;
             $answer_page = $pages->get($answer_id);
             $vote_page = $pages->get($vote_id);
+
+			// If present, load overridden options passed to "renderPoll" from session
+			$this->loadOptionsSession($vote_page);
 
             if(!$vote_page->id) return false;
             if(!$answer_page->id) return false;
@@ -483,6 +538,22 @@ class Pollino extends WireData implements Module {
 
     public function ___install() {
 
+		if(! $this->wire->fields->get("name=pollino_poll_closedate")){
+			$f_cdate = new Field();
+			$f_cdate->name = "pollino_poll_closedate";
+			$f_cdate->label = "Poll Closing Date";
+			$f_cdate->type = $this->modules->get("FieldtypeDatetime");
+			$f_cdate->size =10;
+			$f_cdate->description = "The date until when the poll runs. Afterwards, only results will be shown.";
+			$f_cdate->datepicker = 3;		// Show datepicker on focus
+			$f_cdate->dateInputFormat = 'Y-m-d';
+			$f_cdate->timeInputFormat = 'H:i';
+			$f_cdate->dateOutputFormat = 'Y-m-d';
+			$f_cdate->timeOutputFormat = 'H:i';
+			$f_cdate->tags = '-poll';
+			$f_cdate->save();
+		}
+
         if(!$this->wire->templates->get("name=pollino_polls")->id){
             $fg_folder = new Fieldgroup();
             $fg_folder->name = "pollino_polls";
@@ -493,6 +564,7 @@ class Pollino extends WireData implements Module {
             $tpl_folder->name = "pollino_polls";
             $tpl_folder->label = "Polls";
             $tpl_folder->set("fieldgroup", $fg_folder);
+            $tpl_folder->tags = '-poll';
             $tpl_folder->save();
         }
 
@@ -500,6 +572,7 @@ class Pollino extends WireData implements Module {
             $fg_poll = new Fieldgroup();
             $fg_poll->name = "pollino_poll";
             $fg_poll->add($this->wire->fields->get("title"));
+            $fg_poll->add($f_cdate);
             $fg_poll->save();
 
             $tpl_folder = $this->wire->templates->get("name=pollino_polls");
@@ -509,6 +582,7 @@ class Pollino extends WireData implements Module {
             $tpl_poll->set("fieldgroup", $fg_poll);
             $tpl_poll->parentTemplates = array($tpl_folder->id);
             $tpl_poll->noShortcut = 0;
+            $tpl_poll->tags = '-poll';
             $tpl_poll->save();
 
             $tpl_folder->childTemplates = array($tpl_poll->id);
@@ -527,6 +601,7 @@ class Pollino extends WireData implements Module {
             $tpl_answer->label = "Poll Answer";
             $tpl_answer->set("fieldgroup", $fg_answer);
             $tpl_answer->parentTemplates = array($tpl_poll->id);
+            $tpl_answer->tags = '-poll';
             $tpl_answer->save();
 
             $tpl_poll->childTemplates = array($tpl_answer->id);

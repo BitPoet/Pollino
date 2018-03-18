@@ -46,17 +46,12 @@ Create a new template file ```pollino_poll.php``` in your site/templates folder 
 ```
 // may needs modification as this examples uses delayed output
 // but you get the idea
-$content .= "<div class='pollino_poll'>";
-$content .= "<div class='inner'>";
-$content .= "<h3>$page->title</h3>";
 $content .= $modules->Pollino->renderPoll($page);
-$content .= "</div>";
-$content .= "</div>";
 ```
 
-The ```renderPoll(Pollpage)``` method will just return the form with the options, or if the user already voted, the result list.
+The ```renderPoll(Pollpage)``` method will return the form with the options, or if the user already voted, the result list.
 
-As you can see you have to add the wrapper container ```.pollino_poll``` to hold the poll and its title of the poll. This makes it easier to customize the output. I also used a ```.inner``` div as you can see, but that's purely personal preference to keep things more flexible. All it needs is at least wrapper around the poll, expecially for the ajax script to know where to insert the result.
+If you want to customize the output, you can change the HTML templates used for all polls in the module's configuration settings or override individual settings in the optional second parameter of renderPoll.
 
 Make the css ```pollino.css``` that comes with the module your own and modify to your needs to create you own theme.
 
@@ -69,7 +64,7 @@ $pollino = $modules->Pollino;
 $pollino->setOptions($options);
 ```
 
-Options are:
+Options are e.g.:
 ```
 $options = array(
     'form_action' => './', // overwrite action url of form
@@ -84,6 +79,8 @@ $options = array(
     'answer_outertpl' => '<ul class="pollino_list">{out}</ul>',
 );
 ```
+
+See the configoptions.html file in the module directory for all available options.
 
 You can also add one or more configurations (named array) in your site/config.php and use them.
 
