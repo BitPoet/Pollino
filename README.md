@@ -37,7 +37,7 @@ If you want to enable ajax support for the polls, just add the javascript that c
 
 ### Create and output your first poll
 
-You can create a new poll by adding a child to the newly created /pollinopolls/ page (feel free to rename it). The title of the page would represent the question of poll.
+You can create a new poll by adding a child to the newly created /pollinopolls/ page (feel free to rename it). The title of the page would represent the question of poll. You can add a closing date for the poll here. After that date+time, voting is disabled and only the result is shown (you can configure in the module settings whether you want that closing date displayed in the poll).
 
 Then add as many child pages to the poll that represent the answers. Make sure those are all published. (You can alternatively use PageTable field to make them addable and editable directly from the puestion page).
 
