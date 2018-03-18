@@ -1,0 +1,29 @@
+<?php
+
+
+class TextformatterPollinoPoll extends Textformatter {
+	public static function getModuleInfo() {
+		return array(
+		    'title' => 'Poll Textformatter',
+		    'summary' => 'Replaces ##POLL:poll-name## patterns in text fields with the according Pollino poll',
+		    'version' => 2,
+		    'author' => 'BitPoet',
+		    'requires' => 'Pollino'
+		);
+	}
+	
+	public function format(&$str) {
+		
+		$pollino = $this->modules->get('Pollino');		
+		
+		if(preg_match_all('/##POLL:([a-zA-Z0-9-]+)##/s', $str, $match)) {
+			foreach(array_unique($match[1]) as $pollname) {				
+				$poll = $this->pages->get("template=pollino_poll, name=$pollname");
+				if($poll) {
+					$str = str_replace("##POLL:{$pollname}##", $pollino->renderPoll($poll), $str);
+				}
+			}
+		}
+	}
+
+}

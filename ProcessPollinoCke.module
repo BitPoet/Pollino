@@ -1,0 +1,79 @@
+<?php
+
+
+class ProcessPollinoCke extends Process implements Module {
+	
+	public static function getModuleInfo() {
+		return array(
+		    'title' => 'Pollino Plugin for CKEditor',
+		    'summary' => 'An easy way to insert polls into your body content',
+		    'version' => 2,
+		    'author' => 'BitPoet',
+		    'requires' => 'TextformatterPollinoPoll',
+			"autoload"		=>	function() {
+				$p = wire('page');
+				if(! $p->template == "admin") return false;
+				if($p->process == "ProcessPageEdit" || $p->process == "ProcessField" || $p->process == "ProcessPollinoCke") return true;
+				return false;
+			},
+			'page' => array(
+				"name"		=>	"pwpollino",
+				"title"		=>	"Pollino Polls",
+				"status"	=>	"hidden",
+			),
+		);
+	}
+
+	public function ___execute() {
+		
+		$wrap = new InputfieldWrapper();
+		
+		$boxes = $this->modules->get("InputfieldSelect");
+		$boxes->label = __("Select poll to insert");
+		$boxes->attr("id+name", "poll");
+		
+		$ps = $this->pages->find("template=pollino_poll, sort=title");
+		foreach($ps as $p) {
+			$boxes->addOption($p->name, $p->title);
+		}
+		
+		$wrap->append($boxes);
+		
+		return $wrap->render();
+	}
+
+	public function init() {
+		parent::init();
+		
+		$thisUrl = $this->config->urls->{$this->className} . "pollino/";
+		
+		$this->config->js("pwpollino", array(
+			"url" => $thisUrl,
+			"label" => __("Insert Poll"),
+			"cancel" => __("Cancel")
+		));
+		
+		$this->addHookAfter("ProcessPageEdit::execute", $this, "addPlugin");
+	}
+	
+	/**
+	 * Add plugin to CKEditor in ProcessPageEdit
+	 */
+	public function addPlugin(HookEvent $event) {
+		
+		// add JS
+		$js = '';
+		$js_config = $this->config->js();
+		foreach ($js_config as $key => $value) {
+			if(strpos($key, 'InputfieldCKEditor_') !== false) {
+				$js .= "config.$key.toolbar.push(['Pollino']);";
+				$js .= "config.$key.extraPlugins += ',pollino';";
+			}
+		}
+
+		$plugins_path = $this->config->urls->{$this->className};
+		$js = "CKEDITOR.plugins.addExternal('pollino', '{$plugins_path}pollino/plugin.js?ts=" . time() . "');" . $js;
+		
+		$event->return = "<script>$js</script>" . $event->return;
+	}
+}
