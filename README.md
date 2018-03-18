@@ -41,6 +41,8 @@ You can create a new poll by adding a child to the newly created /pollinopolls/ 
 
 Then add as many child pages to the poll that represent the answers. Make sure those are all published. (You can alternatively use PageTable field to make them addable and editable directly from the puestion page).
 
+#### Poll insertion the manual way
+
 Create a new template file ```pollino_poll.php``` in your site/templates folder and add this example code to render the poll.
 
 ```
@@ -54,6 +56,18 @@ The ```renderPoll(Pollpage)``` method will return the form with the options, or 
 If you want to customize the output, you can change the HTML templates used for all polls in the module's configuration settings or override individual settings in the optional second parameter of renderPoll.
 
 Make the css ```pollino.css``` that comes with the module your own and modify to your needs to create you own theme.
+
+#### Poll insertion and output with CKEditor
+
+- install TextformatterPollinoPoll (shown as Poll Textformatter)
+- activate the Poll Textformatter on all CKEditor fields where you want to be able to output polls
+- install ProcessPollinoCke (shown as Pollino Plugin for CKEditor)
+
+Edit a page with CKEditor field and put your cursor where you want to put the poll. You will find the "Insert Poll" button at the right of the menu bar. When you click it, you can select one from all the configured polls. Click the "Insert Poll" button. You will see a poll tag like
+
+```##POLL:name-of-your-poll-page##```
+
+Save the page and view it in the frontend.
 
 ### Configurations and Options
 
