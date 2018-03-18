@@ -37,26 +37,21 @@ If you want to enable ajax support for the polls, just add the javascript that c
 
 ### Create and output your first poll
 
-You can create a new poll by adding a child to the newly created /pollinopolls/ page (feel free to rename it). The title of the page would represent the question of poll.
+You can create a new poll by adding a child to the newly created /pollinopolls/ page (feel free to rename it). The title of the page would represent the question of poll. You can add a closing date for the poll here. After that date+time, voting is disabled and only the result is shown (you can configure in the module settings whether you want that closing date displayed in the poll).
 
 Then add as many child pages to the poll that represent the answers. Make sure those are all published. (You can alternatively use PageTable field to make them addable and editable directly from the puestion page).
 
 Create a new template file ```pollino_poll.php``` in your site/templates folder and add this example code to render the poll.
 
-```
+```PHP
 // may needs modification as this examples uses delayed output
 // but you get the idea
-$content .= "<div class='pollino_poll'>";
-$content .= "<div class='inner'>";
-$content .= "<h3>$page->title</h3>";
 $content .= $modules->Pollino->renderPoll($page);
-$content .= "</div>";
-$content .= "</div>";
 ```
 
-The ```renderPoll(Pollpage)``` method will just return the form with the options, or if the user already voted, the result list.
+The ```renderPoll(Pollpage)``` method will return the form with the options, or if the user already voted, the result list.
 
-As you can see you have to add the wrapper container ```.pollino_poll``` to hold the poll and its title of the poll. This makes it easier to customize the output. I also used a ```.inner``` div as you can see, but that's purely personal preference to keep things more flexible. All it needs is at least wrapper around the poll, expecially for the ajax script to know where to insert the result.
+If you want to customize the output, you can change the HTML templates used for all polls in the module's configuration settings or override individual settings in the optional second parameter of renderPoll.
 
 Make the css ```pollino.css``` that comes with the module your own and modify to your needs to create you own theme.
 
@@ -64,13 +59,13 @@ Make the css ```pollino.css``` that comes with the module your own and modify to
 
 On the module's screen you have various options to configure the module. These options can also be set directly via API using setOptions(array|string) method.
 
-```
+```PHP
 $pollino = $modules->Pollino;
 $pollino->setOptions($options);
 ```
 
-Options are:
-```
+Options are e.g.:
+```PHP
 $options = array(
     'form_action' => './', // overwrite action url of form
     'prevent_voting_type' => 'use_cookie', // can be either of these use_cookie|use_ip|use_user
@@ -85,11 +80,13 @@ $options = array(
 );
 ```
 
+See the ```configoptions.html``` file in the module directory for all available options.
+
 You can also add one or more configurations (named array) in your site/config.php and use them.
 
 Example to create a config names ```myconfig1```, add this to your config
 
-```
+```PHP
 $config->pollino = array(
         'myconfig1' => array(
             'form_action' => './',
@@ -102,25 +99,25 @@ $config->pollino = array(
 
 Then use the configuration name "myconfig1" in your calls. Either with setOptions()
 
-```
+```PHP
 $pollino->setOptions("myconfig1");
 ```
 
 Or when using the render method renderPoll() you can do this
 
-```
+```PHP
 $pollino->renderPoll($page, "myconfig1");
 ```
 
 To render a poll view-only, you can force it by setting the second or third  (if options present) argument to true:
 
-```
+```PHP
 echo $pollino->renderPoll($page, $viewOnly = true);
 ```
 
 or with additional options argument added
 
-```
+```PHP
 echo $pollino->renderPoll($page, $options, $viewOnly = true);
 ```
 
@@ -129,13 +126,13 @@ echo $pollino->renderPoll($page, $options, $viewOnly = true);
 You can also get the result of a poll by using getVoteResults(poll, type). It returns an array by default.
 
 To get the results in form of the answer pages as an PageArray use "pages" keyword:
-```
+```PHP
 $answerPages = $modules->Pollino->getVoteResults($poll, "pages");
 ```
 
 The returned answer pages in the PageArray contain properties added you can use to output a result list. The $poll page will contain the total votes $poll->vote_total
 
-```
+```PHP
 foreach($answerPages as $answer) {
     echo $answer->vote_count;
     echo $answer->vote_percent;
@@ -144,13 +141,13 @@ echo $poll->vote_total;
 ```
 
 To get a associative array with the results for each answer leave second argument blank or "array";
-```
+```PHP
 $answerArray = $modules->Pollino->getVoteResults($poll, "array");
 ```
 
 The returned array will contain count, percent and answer text
 
-```
+```PHP
 foreach($answerArray as $answer) {
     echo $answer['vote_count'];
     echo $answer['vote_percent'];
@@ -162,7 +159,7 @@ foreach($answerArray as $answer) {
 
 All of the render methods are hookable, so you can easily replace them with your own methods.
 
-```
+```PHP
 renderPollForm($page) // renders form with rows
 renderFormRow($item, $key) // renders only the rows
 
@@ -178,7 +175,7 @@ $this->addHookBefore("Pollino::renderResultRow", $this, "hookPollinoResultRow");
 
 And then the method to replace the results output. Here with an additional thumbnail image and in a table instead of a ul list.
 
-```
+```PHP
 public function hookPollinoResultRow($event) {
 
     $item = $event->arguments("item");
@@ -202,7 +199,7 @@ public function hookPollinoResultRow($event) {
 
 To make this work you must also modify the "result_outertpl" to be a table. Like
 
-```
+```PHP
 $options = array(
     'result_outertpl' => '<table class="pollino_list_results">{out}</table>'
 )

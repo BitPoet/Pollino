@@ -1,0 +1,216 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<title>Pollino Configuration Options</title>
+		<style>
+			*, body, html {
+				font-family: Arial, Helvetica, Sans-Serif;
+			}
+			pre {
+				padding: 0.5em;
+				display: inline-block;
+				background-color: rgb(230, 230, 230) !important;
+				border: 1px dotted black;
+			}
+			
+			p.confighead {
+				font-size: 1.2em;
+				color: darkblue;
+			}
+			
+			div.wrap {
+				padding-left: 1em;
+			}
+			
+			div.config {
+				padding:	0.5em;
+				border:		1px solid darkgrey;
+			}
+			
+			div.config p {
+				margin-bottom: 0.5em;
+				margin-top: 0.5em;
+			}
+			
+			div.config p em {
+				font-size: 0.8em;
+			}
+		</style>
+	</head>
+	<body>
+		
+		<h1>Pollino Configuration Settings</h1>
+		
+		<p>The following options are available for Pollino and can be overridden in the $options array passed to renderPoll(). They will also applied on subsequent AJAX calls.</p>
+
+			<div class='config'>
+				<p class='confighead'>form_action</p>
+				<p>Default form action</p>
+				<p><em>Default action url for the voting form.</em></p>
+				<p>Default: </p>
+				<pre>./</pre>
+			</div>
+			<div class='config'>
+				<p class='confighead'>result_sorting</p>
+				<p>Default result sorting</p>
+				<p><em>Default sorting of the answers.</em></p>
+				<p>Default: </p>
+				<pre>sort</pre>
+			</div>
+			<div class='config'>
+				<p class='confighead'>show_expiry</p>
+				<p>Show poll end date if set</p>
+			</div>
+			<div class='wrap'>
+				<h2>HTML Templates</h2>
+				<div class='wrap'>
+					<h3>Generic</h3>
+					<div class='config'>
+						<p class='confighead'>poll_tpl</p>
+						<p>Wrapper for poll (form and result)</p>
+						<p>Default: </p>
+						<pre>&lt;div class=&quot;pollino_poll&quot;&gt;
+	&lt;div class=&quot;pollino_inner&quot;&gt;
+		&lt;h3&gt;{title}&lt;/h3&gt;
+		{poll}
+	&lt;/div&gt;
+&lt;/div&gt;</pre>
+					</div>
+					<div class='config'>
+						<p class='confighead'>expiry_tpl</p>
+						<p>Wrapper for poll end date</p>
+						<p>Default: </p>
+						<pre>&lt;p class=&quot;pollino_close&quot;&gt;{label}&lt;br&gt;{closedate}&lt;/p&gt;</pre>
+					</div>
+					<div class='config'>
+						<p class='confighead'>message_tpl</p>
+						<p>Wrapper for error messages</p>
+						<p>Default: </p>
+						<pre>&lt;p class=&quot;pollino_error&quot;&gt;{message}&lt;/p&gt;</pre>
+					</div>
+					</div>
+				<div class='wrap'>
+					<h3>Poll Form</h3>
+					<div class='config'>
+						<p class='confighead'>form_tpl</p>
+						<p>Form template</p>
+						<p>Default: </p>
+						<pre>&lt;form action=&quot;{form_action}&quot; method=&quot;get&quot; class=&quot;pollino_form&quot;&gt;
+	&lt;input type=&quot;hidden&quot; name=&quot;pollino_poll&quot; value=&quot;{id}&quot;&gt;
+	{configField}
+	{message}
+	{list}
+	{button} {loader}
+	{closing}
+&lt;/form&gt;</pre>
+					</div>
+					<div class='config'>
+						<p class='confighead'>answer_outertpl</p>
+						<p>Form choice list wrapper</p>
+						<p>Default: </p>
+						<pre>&lt;ul class=&quot;pollino_list&quot;&gt;{out}&lt;/ul&gt;</pre>
+					</div>
+					<div class='config'>
+						<p class='confighead'>form_rowtpl</p>
+						<p>Form row template</p>
+						<p>Default: </p>
+						<pre>&lt;li class=&quot;pollino_item&quot;&gt;
+	&lt;label&gt;&lt;input type=&quot;radio&quot; name=&quot;pollino_answer&quot; value=&quot;{id}&quot;&gt; {title}&lt;/label&gt;
+&lt;/li&gt;</pre>
+					</div>
+					<div class='config'>
+						<p class='confighead'>form_submittpl</p>
+						<p>Form submit button template</p>
+						<p>Default: </p>
+						<pre>&lt;input class=&quot;pollino_submit&quot; type=&quot;submit&quot; value=&quot;{value}&quot;&gt;</pre>
+					</div>
+					<div class='config'>
+						<p class='confighead'>form_loadertpl</p>
+						<p>Form loading indicator</p>
+						<p>Default: </p>
+						<pre>&lt;span class=&quot;pollino_loader pollino_hidden&quot;&gt;&lt;/span&gt;</pre>
+					</div>
+					</div>
+				<div class='wrap'>
+					<h3>Result Display</h3>
+					<div class='config'>
+						<p class='confighead'>result_tpl</p>
+						<p>Result template</p>
+						<p>Default: </p>
+						<pre>{message}
+{list}
+{closed}
+{total}</pre>
+					</div>
+					<div class='config'>
+						<p class='confighead'>result_outertpl</p>
+						<p>Result list wrapper</p>
+						<p>Default: </p>
+						<pre>&lt;ol class=&quot;pollino_list_results&quot;&gt;{out}&lt;/ol&gt;</pre>
+					</div>
+					<div class='config'>
+						<p class='confighead'>result_rowtpl</p>
+						<p>Result row template</p>
+						<p>Default: </p>
+						<pre>&lt;li class=&quot;pollino_item pollino_item{key}&quot;&gt;
+	&lt;span class=&quot;pollino_percent_wrapper&quot;&gt;
+		&lt;span class=&quot;pollino_percent_bar stretchRight&quot; style=&quot;width:{vote_percent}%;&quot;&gt;&amp;nbsp;&lt;/span&gt;
+	&lt;/span&gt;
+	{title} ({vote_percent}%, {vote_count})
+&lt;/li&gt;</pre>
+					</div>
+					<div class='config'>
+						<p class='confighead'>total_tpl</p>
+						<p>Total vote count template</p>
+						<p>Default: </p>
+						<pre>&lt;p class=&quot;pollino_total&quot;&gt;{label} {vote_total}&lt;/p&gt;</pre>
+					</div>
+					</div>
+				</div>
+			<div class='wrap'>
+				<div class='config'>
+					<p class='confighead'>prevent_voting_type</p>
+					<p>Prevent Multiple Votings Method</p>
+					<p><em>Choose one or the other method</em></p>
+					<p>Default: </p>
+					<pre>use_cookie</pre>
+				</div>
+				<div class='config'>
+					<p class='confighead'>cookie_expires</p>
+					<p>Cookie Lifetime</p>
+					<p><em>Lifetime of the cookie in seconds</em></p>
+					<p>Default: </p>
+					<pre>86400</pre>
+				</div>
+				<div class='config'>
+					<p class='confighead'>cookie_prefix</p>
+					<p>Cookie Prefix</p>
+					<p><em>Prefix used for the client side cookies</em></p>
+					<p>Default: </p>
+					<pre>pillono_</pre>
+				</div>
+				<div class='config'>
+					<p class='confighead'>ip_expires</p>
+					<p>IP Lifetime</p>
+					<p><em>Seconds after the IP restriction will expire. Enter 0 to no expire.</em></p>
+					<p>Default: </p>
+					<pre>86400</pre>
+				</div>
+				<div class='config'>
+					<p class='confighead'>use_ua</p>
+					<p>UserAgent</p>
+					<p><em>Additionally use the User Agent string</em></p>
+					<p>Default: </p>
+					<pre>0</pre>
+				</div>
+				<div class='config'>
+					<p class='confighead'>user_info</p>
+					<p>User restriction</p>
+					<p>Default: </p>
+					<pre>By using this option. The logged in user will be used to prevent multiple votings. The rest is up to you to handle where and how to render your polls.</pre>
+				</div>
+				</div>
+
+
+	</body>
+</html>

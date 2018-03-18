@@ -26,7 +26,9 @@ $(function(){
                     form.before($('<p class="pollino_error">' + data.message + '</p>'));
                 } else {
                     form.remove();
-                    var result = $(data).hide();
+                    // Add wrapping div in case the return contains more than one element, as
+                    // that would make jQuery effects throw an error
+                    var result = $('<div class="pollino_ajaxwrap">' + data + '</div>').hide();
                     container.append(result.fadeIn());
                 }
             }
