@@ -419,6 +419,7 @@ class Pollino extends WireData implements Module {
         }
 
         if($this->prevent_voting_type == "use_user"){
+            if($user === null) $user = $this->wire('user');
             return $this->checkByUser($poll, $user);
         }
 
